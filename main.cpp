@@ -7,7 +7,7 @@
 * @Author: Haut-Stone
 * @Date:   2017-06-23 09:16:43
 * @Last Modified by:   Haut-Stone
-* @Last Modified time: 2017-06-23 15:06:53
+* @Last Modified time: 2017-06-23 17:06:50
 */
 
 //This is a small huffman compress and extract program.
@@ -27,7 +27,7 @@ using namespace std;
 
 const int N = 1000;
 const int INF = 99999999;
-const int BUFFERSIZE = 256;
+const int BUFFERSIZE = 257;
 const int ASCLLSIZEPLUS = 300;
 
 struct Node
@@ -64,6 +64,7 @@ struct Node
 }huffmanNode[N];
 
 char command[N];
+char option[N];
 char systemBuffer[BUFFERSIZE];
 int allCharNum;
 int allInfoNum;
@@ -71,6 +72,9 @@ int allNodeNum;
 int allByteNum;
 int allCnt;
 int allsupplement;
+int haveCompress;
+int haveExtract;
+
 stack<string> format, temp;
 string a = "|   ";
 string b = "    ";
@@ -94,17 +98,29 @@ void generateResult();
 void extract();
 void importHuffmanNode();
 void bToa();
+//
+
+void showTree();
+void showInfo();
+void showContent();
+void showCode();
+void showresult();
 
 int main(void)
 {
-	cout<<"HELLO"<<endl;
+	cout<<"[Huffman 1.0.0 June 2017 23]"<<endl;
+	cout<<"Type help for more information."<<endl;
 	while(1){
-		while(strcmp(command, "help") != 0 && strcmp(command, "compress") != 0 && strcmp(command, "extract") != 0 && strcmp(command, "exit") != 0){
+		while(strcmp(command, "help") != 0 && strcmp(command, "compress") != 0 && strcmp(command, "extract") != 0 && strcmp(command, "exit") != 0 && strcmp(command, "show") != 0){
 			cin>>command;
+			if(strcmp(command, "show") == 0) cin>>option;
 			cin.clear();
 			cin.ignore(1024, '\n');
-			if(strcmp(command, "help") != 0 && strcmp(command, "compress") != 0 && strcmp(command, "extract") != 0 && strcmp(command, "exit") != 0){
-				cout<<"command can't find"<<endl;
+			if(strcmp(command, "help") != 0 && strcmp(command, "compress") != 0 && strcmp(command, "extract") != 0 && strcmp(command, "exit") != 0 && strcmp(command, "show") != 0){
+				cout<<"Command can't find."<<endl;
+			}
+			if(strcmp(command, "show") == 0 && strcmp(option, "tree") != 0 && strcmp(option, "info") != 0 && strcmp(option, "content") != 0 && strcmp(option, "result") != 0 && strcmp(option, "code") != 0){
+				cout<<"Option can't find."<<endl;
 			}
 		}
 		if(strcmp(command, "help") == 0){
@@ -112,12 +128,43 @@ int main(void)
 			memset(command, 0, sizeof(command));
 		}else if(strcmp(command, "compress") == 0){
 			compress();
-			extract();
+			haveCompress = 1;
 			memset(command, 0, sizeof(command));
 		}else if(strcmp(command, "extract") == 0){
+			if(haveCompress == 0){
+				printf("you can't extract before compress\n");
+			}else{
+				extract();
+				haveExtract = 1;
+			}
 			memset(command, 0, sizeof(command));
 		}else if(strcmp(command, "exit") == 0){
 			exit(0);
+		}else if(strcmp(command, "show") == 0){
+			if(haveExtract == 1 || haveCompress == 1){
+				cout<<"you must restart this program then show the information"<<endl;
+			}else{
+				if(strcmp(option, "tree") == 0){
+					showTree();	
+					memset(option, 0, sizeof(command));
+				}else if(strcmp(option, "info") == 0){
+					showInfo();
+					memset(option, 0, sizeof(command));
+				}else if(strcmp(option, "result") == 0){
+					showresult();
+					memset(option, 0, sizeof(command));
+				}else if(strcmp(option, "code") == 0){
+					showCode();
+					printf("\n");
+					memset(option, 0, sizeof(command));
+				}else if(strcmp(option, "content") == 0){
+					showContent();
+					printf("\n");
+					memset(option, 0, sizeof(command));
+				}else{
+				}
+			}
+			memset(command, 0, sizeof(command));
 		}else{
 			exit(1);
 		}
@@ -127,6 +174,7 @@ int main(void)
 
 void compress()
 {
+	cout<<"compressing......"<<endl;
 	probabilityStatistics();
 	generateInfoDictionary();
 	generateHuffmanNode();
@@ -134,12 +182,15 @@ void compress()
 	saveHuffmanNode();
 	generateTree(allNodeNum);
 	aTob();
+	cout<<"compressed."<<endl;
 }
 
 void extract()
 {
+	cout<<"extracting......"<<endl;
 	importHuffmanNode();
 	bToa();
+	cout<<"extracted."<<endl;
 }
 
 void probabilityStatistics()
@@ -278,7 +329,7 @@ void aTob()
 	FILE *readFile;
 	readFile = fopen("/Users/li/GitHub/huffmanCompress/content.txt", "r");
 
-	memset(systemBuffer, 0, sizeof(systemBuffer));
+	memset(systemBuffer, '\0', sizeof(systemBuffer));
 
 	char soloChar;
 	char soloCode[N];
@@ -292,14 +343,14 @@ void aTob()
 			systemBuffer[systemBufferPtr] = soloCode[i];
 			if(systemBufferPtr == 255){
 				generateResult();
-				memset(systemBuffer, 0, sizeof(systemBuffer));
+				memset(systemBuffer, '\0', sizeof(systemBuffer));
 				systemBufferPtr = 0;
 			}else{
 				systemBufferPtr++;
 			}
 		}
 	}
-	generateResult();
+	if(systemBufferPtr != 0) generateResult();
 	fclose(readFile);
 }
 
@@ -398,15 +449,20 @@ void generateTree(int NodeId)
 
 void help()
 {
-	printf("Usage:\n");
+	printf("\n\nUsage:\n");
 	printf("  <command> [options]\n\n");
 	printf("Commands:\n");
 	printf("  %-20s %-20s\n", "help", "Show help for commands.");
 	printf("  %-20s %-20s\n", "compress", "compress ascll file to binary");
 	printf("  %-20s %-20s\n", "extract", "extract binary file to ascll");
-	printf("  %-20s %-20s\n\n", "exit", "exit program");
+	printf("  %-20s %-20s\n", "exit", "exit program");
+	printf("  %-20s %-20s\n\n", "show -[options]", "show infomation");
 	printf("General Options:\n");
-	printf("  None\n");
+	printf("  %-20s %-20s\n", "-tree", "Show huffman tree in consloe.");
+	printf("  %-20s %-20s\n", "-info", "Show statistics information in consloe.");
+	printf("  %-20s %-20s\n", "-contnet", "Show content in consloe.");
+	printf("  %-20s %-20s\n", "-code", "Show huffman code in consloe.");
+	printf("  %-20s %-20s\n", "-result", "Show b to a result in consloe.");
 }
 
 void bToa()
@@ -448,7 +504,6 @@ void bToa()
 	len = strlen(inChar);
 
 	len -= allsupplement;
-	
 	while(first < len){
 		for(map<char, string>::iterator it = Code.begin();it!=Code.end();it++){
 			mapLen = it->second.length();
@@ -458,7 +513,6 @@ void bToa()
 				temp[i+1] = '\0';
 			}
 			if(strcmp(temp, it->second.c_str()) == 0){
-				cout<<it->first;
 				fprintf(writeFile, "%c", it->first);
 				first += mapLen;
 				break;
@@ -476,4 +530,64 @@ void importHuffmanNode()
 	huffmanNodeFile = fopen("/Users/li/GitHub/huffmanCompress/huffmanNode", "rb");
 	fread(huffmanNode+1, sizeof(Node), allNodeNum, huffmanNodeFile);
 	fclose(huffmanNodeFile);
+}
+
+void showTree()
+{
+	FILE *showFile;
+	showFile = fopen("/Users/li/GitHub/huffmanCompress/tree.txt", "r");
+
+	char soloChar;
+	while(fscanf(showFile, "%c", &soloChar) != EOF){
+			printf("%c", soloChar);
+	}
+	fclose(showFile);
+}
+
+void showContent()
+{
+	FILE *showFile;
+	showFile = fopen("/Users/li/GitHub/huffmanCompress/content.txt", "r");
+
+	char soloChar;
+	while(fscanf(showFile, "%c", &soloChar) != EOF){
+			printf("%c", soloChar);
+	}
+	fclose(showFile);
+}
+
+void showCode()
+{
+	FILE *showFile;
+	showFile = fopen("/Users/li/GitHub/huffmanCompress/back.txt", "r");
+
+	char soloChar;
+	while(fscanf(showFile, "%c", &soloChar) != EOF){
+			printf("%c", soloChar);
+	}
+	fclose(showFile);
+}
+
+void showresult()
+{
+	FILE *showFile;
+	showFile = fopen("/Users/li/GitHub/huffmanCompress/ascll.txt", "r");
+
+	char soloChar;
+	while(fscanf(showFile, "%c", &soloChar) != EOF){
+			printf("%c", soloChar);
+	}
+	fclose(showFile);
+}
+
+void showInfo()
+{
+	FILE *showFile;
+	showFile = fopen("/Users/li/GitHub/huffmanCompress/Info.txt", "r");
+
+	char soloChar;
+	while(fscanf(showFile, "%c", &soloChar) != EOF){
+			printf("%c", soloChar);
+	}
+	fclose(showFile);
 }
