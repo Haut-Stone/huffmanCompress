@@ -8,8 +8,10 @@ Xcode
 ## 程序概要
 ![Alt text](流程.png)
 ## 特点
-这个程序可以用show tree命令，来显示被压缩文件的Huffman树的形状。
+这个程序可以用show tree命令，来显示被压缩文件的Huffman树的形状。并且模仿Unix的风格，有一个相似的明亮行交互界面。
+![Alt text](tree.png)
 ## 仍需解决的问题
 - 解压的文件大小限制
 - huffman相关信息的保存
+- 用最小堆选择最小元素和次小元素
 
