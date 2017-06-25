@@ -7,7 +7,7 @@
 * @Author: Haut-Stone
 * @Date:   2017-06-23 09:16:43
 * @Last Modified by:   Haut-Stone
-* @Last Modified time: 2017-06-23 17:06:50
+* @Last Modified time: 2017-06-23 21:23:40
 */
 
 //This is a small huffman compress and extract program.
@@ -82,8 +82,6 @@ map<char, double> Info;
 map<char, string> Code;
 
 void help();
-
-//
 void compress();
 void probabilityStatistics();
 void generateInfoDictionary();
@@ -93,18 +91,14 @@ void saveHuffmanNode();
 void generateTree(int NodeId);
 void aTob();
 void generateResult();
-
-//
 void extract();
 void importHuffmanNode();
 void bToa();
-//
-
 void showTree();
 void showInfo();
 void showContent();
 void showCode();
-void showresult();
+void showResult();
 
 int main(void)
 {
@@ -151,7 +145,7 @@ int main(void)
 					showInfo();
 					memset(option, 0, sizeof(command));
 				}else if(strcmp(option, "result") == 0){
-					showresult();
+					showResult();
 					memset(option, 0, sizeof(command));
 				}else if(strcmp(option, "code") == 0){
 					showCode();
@@ -568,7 +562,7 @@ void showCode()
 	fclose(showFile);
 }
 
-void showresult()
+void showResult()
 {
 	FILE *showFile;
 	showFile = fopen("/Users/li/GitHub/huffmanCompress/ascll.txt", "r");
