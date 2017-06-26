@@ -7,7 +7,7 @@
 * @Author: Haut-Stone
 * @Date:   2017-06-23 09:16:43
 * @Last Modified by:   Haut-Stone
-* @Last Modified time: 2017-06-23 21:23:40
+* @Last Modified time: 2017-06-26 17:55:56
 */
 
 //This is a small huffman compress and extract program.
@@ -289,23 +289,28 @@ void generateCodeDictionary()
 {
 	char soloCode[N];
 	soloCode[allCnt-1] = '\0';
-	for(int i=1;i<=allCnt;i++){
-		int start = allCnt-1;
-		int now = i;
-		char nowValue = huffmanNode[now].value;
-		int father = huffmanNode[i].parent;
-		while(father != 0){
-			if(huffmanNode[father].lChild == now){
-				soloCode[--start] = '0';
-			}else{
-				soloCode[--start] = '1';
+
+	if(allCnt == 1){
+		Code[huffmanNode[1].value] = '0';
+	}else{
+		for(int i=1;i<=allCnt;i++){
+			int start = allCnt-1;
+			int now = i;
+			char nowValue = huffmanNode[now].value;
+			int father = huffmanNode[i].parent;
+			while(father != 0){
+				if(huffmanNode[father].lChild == now){
+					soloCode[--start] = '0';
+				}else{
+					soloCode[--start] = '1';
+				}
+				now = father;
+				father = huffmanNode[father].parent;
 			}
-			now = father;
-			father = huffmanNode[father].parent;
+			char temp[N];
+			strcpy(temp, &soloCode[start]);
+			Code[nowValue] = temp;
 		}
-		char temp[N];
-		strcpy(temp, &soloCode[start]);
-		Code[nowValue] = temp;
 	}
 }
 
@@ -464,6 +469,7 @@ void bToa()
 	FILE *readFile, *writeFile;
 	readFile = fopen("/Users/li/GitHub/huffmanCompress/result", "rb");
 	writeFile = fopen("/Users/li/GitHub/huffmanCompress/back.txt", "w");
+
 	int soloInt;
 	char soloTuple[9];
 	int soloTuplePtr = 8;
