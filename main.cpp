@@ -7,7 +7,7 @@
 * @Author: Haut-Stone
 * @Date:   2017-06-23 09:16:43
 * @Last Modified by:   Haut-Stone
-* @Last Modified time: 2017-06-26 19:31:07
+* @Last Modified time: 2017-06-28 23:40:06
 */
 
 //This is a small huffman compress and extract program.
@@ -22,7 +22,6 @@
 #include <stack>
 #include <cmath>
 #include <map>
-#include <set>
 using namespace std;
 
 const int N = 1000;
@@ -40,17 +39,7 @@ struct Node
     int rChild;
     int vis;
     int flag;
-    
-    Node(){
-        id = 0;
-        value = 0;
-        weight = 0;
-        parent = 0;
-        lChild = 0;
-        rChild = 0;
-        vis = 0;
-        flag = 0;
-    }
+    Node(){id = 0;value = 0;weight = 0;parent = 0;lChild = 0;rChild = 0;vis = 0;flag = 0;}
     Node(int I, int VA, int W, int P, int L, int R, int VI, int F){
         id = I;
         value = VA;
@@ -70,10 +59,10 @@ int allCharNum;
 int allInfoNum;
 int allNodeNum;
 int allByteNum;
-int allCnt;
+int allInfoCnt;
 int allsupplement;
-int haveCompress;
-int haveExtract;
+int haveCompress = 1;
+int haveExtract = 1;
 
 stack<string> format, temp;
 string a = "|   ";
@@ -173,9 +162,9 @@ void compress()
     generateInfoDictionary();
     generateHuffmanNode();
     generateCodeDictionary();
-    saveHuffmanNode();
     generateTree(allNodeNum);
     aTob();
+    saveHuffmanNode();
     cout<<"compressed."<<endl;
 }
 
@@ -187,14 +176,15 @@ void extract()
     cout<<"extracted."<<endl;
 }
 
+
 void probabilityStatistics()
 {
     FILE *readFile, *writeFile;
-    readFile = fopen("/Users/li/Github/huffmanCompress/content.txt", "r");
-    writeFile = fopen("/Users/li/Github/huffmanCompress/Info.txt", "w");
+    readFile = fopen("/Users/li/GitHub/huffmanCompress/content.txt", "r");
+    writeFile = fopen("/Users/li/GitHub/huffmanCompress/Info.txt", "w");
     
-    char soloChar;
     int frequency[ASCLLSIZEPLUS];
+    char soloChar;
     allCharNum = 0;
     allInfoNum = 0;
     
@@ -221,15 +211,16 @@ void probabilityStatistics()
     fclose(writeFile);
 }
 
+
 void generateInfoDictionary()
 {
     FILE *readFile;
-    readFile = fopen("/Users/li/Github/huffmanCompress/Info.txt", "r");
+    readFile = fopen("/Users/li/GitHub/huffmanCompress/Info.txt", "r");
     
-    char soloChar;
     int useless;
-    char format;
     double soloValue;
+    char soloChar;
+    char format;
     
     fscanf(readFile, "%d", &useless);
     fgetc(readFile);
@@ -241,19 +232,19 @@ void generateInfoDictionary()
     fclose(readFile);
 }
 
+
 void generateHuffmanNode()
 {
     memset(huffmanNode, 0, sizeof(huffmanNode));
-    allCnt = 1;
-    for(map<char, double>::iterator it = Info.begin();it!=Info.end();it++,allCnt++){
-        huffmanNode[allCnt].id = allCnt;
-        huffmanNode[allCnt].value = it->first;
-        huffmanNode[allCnt].weight = it->second;
+    allInfoCnt = 1;
+    for(map<char, double>::iterator it = Info.begin();it!=Info.end();it++,allInfoCnt++){
+        huffmanNode[allInfoCnt].id = allInfoCnt;
+        huffmanNode[allInfoCnt].value = it->first;
+        huffmanNode[allInfoCnt].weight = it->second;
     }
-    allNodeNum = (--allCnt)*2-1;
+    allNodeNum = (--allInfoCnt)*2-1;
     
-    //之后用优先队列来代替
-    for(int k=allCnt+1;k<=allNodeNum;k++){
+    for(int k=allInfoCnt+1;k<=allNodeNum;k++){
         double min1 = INF;
         double min2 = INF;
         int id1 = 0;
@@ -273,7 +264,6 @@ void generateHuffmanNode()
                 }
             }
         }
-        
         huffmanNode[id1].parent = k;
         huffmanNode[id1].vis = 1;
         huffmanNode[id2].parent = k;
@@ -288,13 +278,13 @@ void generateHuffmanNode()
 void generateCodeDictionary()
 {
     char soloCode[N];
-    soloCode[allCnt-1] = '\0';
+    soloCode[allInfoCnt-1] = '\0';
     
-    if(allCnt == 1){
+    if(allInfoCnt == 1){
         Code[huffmanNode[1].value] = '0';
     }else{
-        for(int i=1;i<=allCnt;i++){
-            int start = allCnt-1;
+        for(int i=1;i<=allInfoCnt;i++){
+            int start = allInfoCnt-1;
             int now = i;
             char nowValue = huffmanNode[now].value;
             int father = huffmanNode[i].parent;
@@ -317,8 +307,11 @@ void generateCodeDictionary()
 void saveHuffmanNode()
 {
     FILE *huffmanNodeFile;
-    huffmanNodeFile = fopen("/Users/li/Github/huffmanCompress/huffmanNode", "wb");
-    fwrite(huffmanNode+1, sizeof(Node), allNodeNum, huffmanNodeFile);
+    huffmanNodeFile = fopen("/Users/li/GitHub/huffmanCompress/huffmanNode", "wb");
+    huffmanNode[0].lChild = allsupplement;
+    huffmanNode[0].rChild = allNodeNum;
+    huffmanNode[0].vis = allByteNum;
+    fwrite(huffmanNode, sizeof(Node), allNodeNum+1, huffmanNodeFile);
     fclose(huffmanNodeFile);
 }
 
@@ -326,14 +319,14 @@ void aTob()
 {
     
     FILE *readFile;
-    readFile = fopen("/Users/li/Github/huffmanCompress/content.txt", "r");
+    readFile = fopen("/Users/li/GitHub/huffmanCompress/content.txt", "r");
     
     memset(systemBuffer, '\0', sizeof(systemBuffer));
     
-    char soloChar;
-    char soloCode[N];
     int len;
     int systemBufferPtr = 0;
+    char soloChar;
+    char soloCode[N];
     
     while(fscanf(readFile, "%c", &soloChar) != EOF){
         strcpy(soloCode, Code[soloChar].c_str());
@@ -356,7 +349,7 @@ void aTob()
 void generateResult()
 {
     FILE *resultFile;
-    resultFile = fopen("/Users/li/Github/huffmanCompress/result", "ab");
+    resultFile = fopen("/Users/li/GitHub/huffmanCompress/result", "ab");
     
     unsigned char soloByte;
     int soloCnt = 0;
@@ -404,7 +397,7 @@ void generateResult()
 void generateTree(int NodeId)
 {
     FILE *writeFile;
-    writeFile = fopen("/Users/li/Github/huffmanCompress/tree.txt", "a");
+    writeFile = fopen("/Users/li/GitHub/huffmanCompress/tree.txt", "a");
     
     string c;
     
@@ -467,8 +460,8 @@ void help()
 void bToa()
 {
     FILE *readFile, *writeFile;
-    readFile = fopen("/Users/li/Github/huffmanCompress/result", "rb");
-    writeFile = fopen("/Users/li/Github/huffmanCompress/back.txt", "w");
+    readFile = fopen("/Users/li/GitHub/huffmanCompress/result", "rb");
+    writeFile = fopen("/Users/li/GitHub/huffmanCompress/back.txt", "w");
     
     int soloInt;
     char soloTuple[9];
@@ -515,28 +508,32 @@ void bToa()
     fclose(readFile);
     fclose(writeFile);
     
-    readFile = fopen("/Users/li/Github/huffmanCompress/back.txt", "r");
-    writeFile = fopen("/Users/li/Github/huffmanCompress/ascll.txt", "w");
-    
-    char anotherInChar;
-    char buffer[40];
-    int bufferPtr = 0;
+    readFile = fopen("/Users/li/GitHub/huffmanCompress/back.txt", "r");
+    writeFile = fopen("/Users/li/GitHub/huffmanCompress/ascll.txt", "w");
 
+
+    char inChar;
+    int curNodeId = allNodeNum;
     long long all_01_num = allByteNum*8 - allsupplement;
 
     while(all_01_num > 0){
-        fscanf(readFile, "%c", &anotherInChar);
+        fscanf(readFile, "%c", &inChar);
         all_01_num--;
 
-        buffer[bufferPtr++] = anotherInChar;
-        buffer[bufferPtr] = '\0';
-        for(map<char, string>::iterator it = Code.begin();it!=Code.end();it++){
-            if(strcmp(it->second.c_str(), buffer) == 0){
-                fprintf(writeFile, "%c", it->first);
-                bufferPtr = 0;
+        if(inChar == '0'){
+            curNodeId = huffmanNode[curNodeId].lChild;
+            if(huffmanNode[curNodeId].lChild == 0 && huffmanNode[curNodeId].rChild == 0){
+                fprintf(writeFile, "%c", huffmanNode[curNodeId].value);
+                curNodeId = allNodeNum;
+            }
+        }else if(inChar == '1'){
+            curNodeId = huffmanNode[curNodeId].rChild;
+            if(huffmanNode[curNodeId].lChild == 0 && huffmanNode[curNodeId].rChild == 0){
+                fprintf(writeFile, "%c", huffmanNode[curNodeId].value);
+                curNodeId = allNodeNum;
             }
         }
-    }   
+    } 
     fprintf(writeFile, "\n");
     fclose(readFile);
     fclose(writeFile);
@@ -545,15 +542,21 @@ void bToa()
 void importHuffmanNode()
 {
     FILE *huffmanNodeFile;
-    huffmanNodeFile = fopen("/Users/li/Github/huffmanCompress/huffmanNode", "rb");
-    fread(huffmanNode+1, sizeof(Node), allNodeNum, huffmanNodeFile);
+    huffmanNodeFile = fopen("/Users/li/GitHub/huffmanCompress/huffmanNode", "rb");
+    int i=0;
+    while(fread(huffmanNode+i, sizeof(Node), 1, huffmanNodeFile) != 0){
+        i++;
+    }
+    allsupplement = huffmanNode[0].lChild;
+    allNodeNum = huffmanNode[0].rChild;
+    allByteNum = huffmanNode[0].vis;
     fclose(huffmanNodeFile);
 }
 
 void showTree()
 {
     FILE *showFile;
-    showFile = fopen("/Users/li/Github/huffmanCompress/tree.txt", "r");
+    showFile = fopen("/Users/li/GitHub/huffmanCompress/tree.txt", "r");
     
     char soloChar;
     while(fscanf(showFile, "%c", &soloChar) != EOF){
@@ -565,7 +568,7 @@ void showTree()
 void showContent()
 {
     FILE *showFile;
-    showFile = fopen("/Users/li/Github/huffmanCompress/content.txt", "r");
+    showFile = fopen("/Users/li/GitHub/huffmanCompress/content.txt", "r");
     
     char soloChar;
     while(fscanf(showFile, "%c", &soloChar) != EOF){
@@ -577,7 +580,7 @@ void showContent()
 void showCode()
 {
     FILE *showFile;
-    showFile = fopen("/Users/li/Github/huffmanCompress/back.txt", "r");
+    showFile = fopen("/Users/li/GitHub/huffmanCompress/back.txt", "r");
     
     char soloChar;
     while(fscanf(showFile, "%c", &soloChar) != EOF){
@@ -589,7 +592,7 @@ void showCode()
 void showResult()
 {
     FILE *showFile;
-    showFile = fopen("/Users/li/Github/huffmanCompress/ascll.txt", "r");
+    showFile = fopen("/Users/li/GitHub/huffmanCompress/ascll.txt", "r");
     
     char soloChar;
     while(fscanf(showFile, "%c", &soloChar) != EOF){
@@ -601,7 +604,7 @@ void showResult()
 void showInfo()
 {
     FILE *showFile;
-    showFile = fopen("/Users/li/Github/huffmanCompress/Info.txt", "r");
+    showFile = fopen("/Users/li/GitHub/huffmanCompress/Info.txt", "r");
     
     char soloChar;
     while(fscanf(showFile, "%c", &soloChar) != EOF){
