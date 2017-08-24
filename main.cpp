@@ -7,7 +7,7 @@
 * @Author: Haut-Stone
 * @Date:   2017-06-23 09:16:43
 * @Last Modified by:   Haut-Stone
-* @Last Modified time: 2017-06-28 23:40:06
+* @Last Modified time: 2017-07-02 12:21:03
 */
 
 //This is a small huffman compress and extract program.
@@ -55,18 +55,20 @@ struct Node
 char command[N];
 char option[N];
 char systemBuffer[BUFFERSIZE];
+
 int allCharNum;
 int allInfoNum;
 int allNodeNum;
 int allByteNum;
 int allInfoCnt;
-int allsupplement;
-int haveCompress = 1;
-int haveExtract = 1;
+int allSupplement;
+
+int haveCompress;
+int haveExtract;
 
 stack<string> format, temp;
-string a = "|   ";
-string b = "    ";
+string A = "|   ";
+string B = "    ";
 map<char, double> Info;
 map<char, string> Code;
 
@@ -308,7 +310,7 @@ void saveHuffmanNode()
 {
     FILE *huffmanNodeFile;
     huffmanNodeFile = fopen("/Users/li/GitHub/huffmanCompress/huffmanNode", "wb");
-    huffmanNode[0].lChild = allsupplement;
+    huffmanNode[0].lChild = allSupplement;
     huffmanNode[0].rChild = allNodeNum;
     huffmanNode[0].vis = allByteNum;
     fwrite(huffmanNode, sizeof(Node), allNodeNum+1, huffmanNodeFile);
@@ -382,7 +384,7 @@ void generateResult()
         
         if(soloCnt != 0){
             allByteNum += 1;
-            allsupplement = 8 - soloCnt;
+            allSupplement = 8 - soloCnt;
             while(soloCnt<8){
                 soloAns = soloAns * 2;
                 soloCnt++;
@@ -427,10 +429,10 @@ void generateTree(int NodeId)
     
     //如果父节点有左儿子
     if(huffmanNode[huffmanNode[NodeId].parent].lChild != 0 && huffmanNode[huffmanNode[NodeId].parent].flag == 0){
-        format.push(a);
+        format.push(A);
         huffmanNode[huffmanNode[NodeId].parent].flag = 1;
     }else{
-        format.push(b);
+        format.push(B);
     }
     
     if(huffmanNode[NodeId].rChild != 0) generateTree(huffmanNode[NodeId].rChild);
@@ -514,7 +516,7 @@ void bToa()
 
     char inChar;
     int curNodeId = allNodeNum;
-    long long all_01_num = allByteNum*8 - allsupplement;
+    long long all_01_num = allByteNum*8 - allSupplement;
 
     while(all_01_num > 0){
         fscanf(readFile, "%c", &inChar);
@@ -547,7 +549,7 @@ void importHuffmanNode()
     while(fread(huffmanNode+i, sizeof(Node), 1, huffmanNodeFile) != 0){
         i++;
     }
-    allsupplement = huffmanNode[0].lChild;
+    allSupplement = huffmanNode[0].lChild;
     allNodeNum = huffmanNode[0].rChild;
     allByteNum = huffmanNode[0].vis;
     fclose(huffmanNodeFile);
